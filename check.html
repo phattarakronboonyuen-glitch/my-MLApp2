@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Check</title>
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  background:#eefaf3;
+}
+.container{
+  text-align:center;
+}
+nav a{
+  margin:0 10px;
+  text-decoration:none;
+  font-weight:bold;
+  color:#2e8b57;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Check</h1>
+  <p>อัปโหลดภาพเพื่อให้ระบบ AI วิเคราะห์</p>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="check.html">Check</a>
+    <a href="about.html">About Us</a>
+  </nav>
+
+
+
+<p>
+<label for="imageInput" class="btn-upload">เลือกภาพ</label>
+<input type="file" id="imageInput" accept="image/*">
+
+<div id="label-container">ยังไม่ได้เลือกภาพ</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+<script>
+const URL = "https://teachablemachine.withgoogle.com/models/8RUqWen8b/";
+
+let model, labelContainer;
+
+async function init() {
+  model = await tmImage.load(URL + "model.json", URL + "metadata.json");
+}
+
+init();
+
+labelContainer = document.getElementById("label-container");
+
+document.getElementById("imageInput").addEventListener("change", function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const img = new Image();
+    img.src = e.target.result;
+
+    img.onload = async () => {
+      const prediction = await model.predict(img);
+
+      let best = prediction[0];
+      for (let i = 1; i < prediction.length; i++) {
+        if (prediction[i].probability > best.probability) {
+          best = prediction[i];
+        }
+      }
+
+      labelContainer.innerHTML =
+        best.className + " : " + (best.probability * 100).toFixed(2) + "%";
+    };
+  };
+
+  reader.readAsDataURL(file);
+});
+</script>
+</p>
+</div>
+</body>
+</html>
